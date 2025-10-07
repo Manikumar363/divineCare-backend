@@ -23,7 +23,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/contact', require('./src/routes/contact'));
 app.use('/api/admin', require('./src/routes/admin'));
 app.use('/api/auth', require('./src/routes/auth'));
-// app.use('/api/users', require('./src/routes/users'));
+app.use('/api/upload', require('./src/routes/upload'));
+app.use('/api/events', require('./src/routes/events'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -43,7 +44,7 @@ app.use('*', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 DivineCare Backend server running on port ${PORT}`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
@@ -51,10 +52,14 @@ app.listen(PORT, () => {
 // Graceful shutdown
 process.on('SIGTERM', () => {
     console.log('SIGTERM received. Shutting down gracefully...');
-    process.exit(0);
+    server.close(() => {
+        process.exit(0);
+    });
 });
 
 process.on('SIGINT', () => {
     console.log('SIGINT received. Shutting down gracefully...');
-    process.exit(0);
+    server.close(() => {
+        process.exit(0);
+    });
 });
