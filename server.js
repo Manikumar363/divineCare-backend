@@ -25,6 +25,9 @@ app.use('/api/admin', require('./src/routes/admin'));
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/upload', require('./src/routes/upload'));
 app.use('/api/events', require('./src/routes/events'));
+app.use('/api/home', require('./src/routes/home'));
+app.use('/api/about', require('./src/routes/about'));
+app.use('/api/testimonials', require('./src/routes/testimonials'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
