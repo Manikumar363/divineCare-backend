@@ -10,15 +10,6 @@ exports.getHome = async (req, res) => {
   }
 };
 
-// POST create home page
-exports.createHome = async (req, res) => {
-  try {
-    const home = await Home.create({ ...req.body });
-    res.status(201).json({ success: true, home });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
 
 // PUT update home page
 exports.updateHome = async (req, res) => {
@@ -30,17 +21,6 @@ exports.updateHome = async (req, res) => {
     );
     if (!home) return res.status(404).json({ success: false, message: 'Home page not found' });
     res.status(200).json({ success: true, home });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-// DELETE home page
-exports.deleteHome = async (req, res) => {
-  try {
-    const home = await Home.findByIdAndDelete(req.params.id);
-    if (!home) return res.status(404).json({ success: false, message: 'Home page not found' });
-    res.status(200).json({ success: true, message: 'Home page deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
