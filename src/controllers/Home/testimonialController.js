@@ -1,5 +1,5 @@
-const TestimonialSection = require('../models/TestimonialSection');
-const cloudinary = require('../config/cloudinary');
+const TestimonialSection = require('../../models/Home/TestimonialSection');
+const cloudinary = require('../../config/cloudinary');
 
 // Edit a testimonial by id
 exports.editTestimonial = async (req, res) => {

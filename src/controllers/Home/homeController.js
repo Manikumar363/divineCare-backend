@@ -1,4 +1,4 @@
-const Home = require('../models/Home');
+const Home = require('../../models/Home/Home');
 
 // GET home page data
 exports.getHome = async (req, res) => {

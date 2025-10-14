@@ -26,11 +26,16 @@ app.use('/api/admin', require('./src/routes/admin'));
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/upload', require('./src/routes/upload'));
 app.use('/api/events', require('./src/routes/events'));
-app.use('/api/home', require('./src/routes/home'));
-app.use('/api/about', require('./src/routes/about'));
-app.use('/api/gallery', require('./src/routes/gallery'));
-app.use('/api/testimonials', require('./src/routes/testimonials'));
-app.use('/api/team-members', require('./src/routes/teamSection'));
+app.use('/api/home', require('./src/routes/Home/home'));
+app.use('/api/about', require('./src/routes/Home/about'));
+app.use('/api/gallery', require('./src/routes/Home/gallery'));
+app.use('/api/testimonials', require('./src/routes/Home/testimonials'));
+app.use('/api/team-members', require('./src/routes/Home/teamSection'));
+app.use('/api/about/main', require('./src/routes/about/mainAbout'));
+app.use('/api/about/mission', require('./src/routes/about/missionAbout'));
+app.use('/api/about/vision', require('./src/routes/about/visionAbout'));
+app.use('/api/about/company', require('./src/routes/About/companyAbout'));
+app.use('/api/about/testimonials', require('./src/routes/about/aboutTestimonials'));
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const testimonialController = require('../controllers/testimonialController');
-const upload = require('../middleware/multer');
-const auth = require('../middleware/auth');
+const testimonialController = require('../../controllers/Home/testimonialController');
+const upload = require('../../middleware/multer');
+const auth = require('../../middleware/auth');
 
 // Get section header and all testimonials
 router.get('/', testimonialController.getTestimonialSection);

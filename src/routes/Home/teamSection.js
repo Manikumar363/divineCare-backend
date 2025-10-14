@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { getTeamSection, addTeamMember, updateTeamSection, deleteTeamMember } = require('../controllers/teamSectionController');
-const { protect, adminOnly } = require('../middleware/auth');
+const { getTeamSection, addTeamMember, updateTeamSection, deleteTeamMember } = require('../../controllers/Home/teamSectionController');
+const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET team section data
 router.get('/', protect, adminOnly, getTeamSection);

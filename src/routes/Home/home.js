@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { getHome, updateHome } = require('../controllers/homeController');
-const { protect, adminOnly } = require('../middleware/auth');
+const { getHome, updateHome } = require('../../controllers/Home/homeController');
+const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET home page data
 router.get('/', protect, adminOnly, getHome);

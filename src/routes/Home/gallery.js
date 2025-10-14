@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { getGallery, updateGallery, createGallery } = require('../controllers/galleryController');
-const { protect, adminOnly } = require('../middleware/auth');
+const { getGallery, updateGallery, createGallery } = require('../../controllers/Home/galleryController');
+const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET gallery data
 router.get('/', protect, adminOnly, getGallery);

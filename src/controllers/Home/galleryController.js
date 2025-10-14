@@ -1,4 +1,4 @@
-const Gallery = require('../models/Gallery');
+const Gallery = require('../../models/Home/Gallery');
 
 // GET gallery data
 exports.getGallery = async (req, res) => {

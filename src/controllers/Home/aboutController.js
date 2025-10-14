@@ -1,4 +1,4 @@
-const About = require('../models/About');
+const About = require('../../models/Home/About');
 
 // GET about section data
 exports.getAbout = async (req, res) => {

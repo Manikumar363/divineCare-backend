@@ -1,4 +1,4 @@
-const TeamSection = require('../models/TeamSection');
+const TeamSection = require('../../models/Home/TeamSection');
 
 // GET all team section data
 exports.getTeamSection = async (req, res) => {
