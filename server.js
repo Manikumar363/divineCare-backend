@@ -1,4 +1,5 @@
 
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -31,11 +32,13 @@ app.use('/api/about', require('./src/routes/Home/about'));
 app.use('/api/gallery', require('./src/routes/Home/gallery'));
 app.use('/api/testimonials', require('./src/routes/Home/testimonials'));
 app.use('/api/team-members', require('./src/routes/Home/teamSection'));
+app.use('/api/home/event', require('./src/routes/Home/homeEvent'));
 app.use('/api/about/main', require('./src/routes/About/mainAbout'));
 app.use('/api/about/mission', require('./src/routes/About/missionAbout'));
 app.use('/api/about/vision', require('./src/routes/About/visionAbout'));
 app.use('/api/about/company', require('./src/routes/About/companyAbout'));
 app.use('/api/about/testimonials', require('./src/routes/About/aboutTestimonials'));
+
 
 // Health check endpoint
 app.get('/health', (req, res) => {
