@@ -1,4 +1,4 @@
-const VisionAbout = require('../../models/about/visionAbout');
+const VisionAbout = require('../../models/About/visionAbout');
 
 // GET vision about section data
 exports.getVisionAbout = async (req, res) => {
