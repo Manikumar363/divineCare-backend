@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getVisionAbout, updateVisionAbout } = require('../../controllers/about/visionAboutController');
+const { getVisionAbout, updateVisionAbout } = require('../../controllers/About/visionAboutController');
 const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET vision about section data

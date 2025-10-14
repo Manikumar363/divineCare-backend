@@ -1,4 +1,4 @@
-const MissionAbout = require('../../models/about/missionAbout');
+const MissionAbout = require('../../models/About/missionAbout');
 
 // GET mission about section data
 exports.getMissionAbout = async (req, res) => {

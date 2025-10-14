@@ -1,4 +1,4 @@
-const AboutTestimonials = require('../../models/about/aboutTestimonials');
+const AboutTestimonials = require('../../models/About/aboutTestimonials');
 
 // GET section content and all testimonials
 exports.getAboutTestimonials = async (req, res) => {

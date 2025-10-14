@@ -34,7 +34,7 @@ app.use('/api/team-members', require('./src/routes/Home/teamSection'));
 app.use('/api/about/main', require('./src/routes/about/mainAbout'));
 app.use('/api/about/mission', require('./src/routes/about/missionAbout'));
 app.use('/api/about/vision', require('./src/routes/about/visionAbout'));
-app.use('/api/about/company', require('./src/routes/About/companyAbout'));
+app.use('/api/about/company', require('./src/routes/about/companyAbout'));
 app.use('/api/about/testimonials', require('./src/routes/about/aboutTestimonials'));
 
 // Health check endpoint

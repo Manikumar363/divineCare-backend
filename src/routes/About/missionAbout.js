@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getMissionAbout, updateMissionAbout } = require('../../controllers/about/missionAboutController');
+const { getMissionAbout, updateMissionAbout } = require('../../controllers/About/missionAboutController');
 const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET mission about section data
