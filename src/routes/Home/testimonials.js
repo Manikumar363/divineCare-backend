@@ -1,19 +1,21 @@
 const express = require('express');
 const router = express.Router();
 const testimonialController = require('../../controllers/Home/testimonialController');
-const upload = require('../../middleware/multer');
 const auth = require('../../middleware/auth');
 
 // Get section header and all testimonials
 router.get('/', testimonialController.getTestimonialSection);
 
-// Create or update section header and testimonials (admin only)
-router.post('/', auth.protect, auth.adminOnly, testimonialController.upsertTestimonialSection);
+// PUT update section header and all testimonials (bulk)
+router.put('/:id', auth.protect, auth.adminOnly, testimonialController.updateTestimonialSection);
 
-// Edit a testimonial by id (admin only)
-router.put('/:testimonialId', auth.protect, auth.adminOnly, testimonialController.editTestimonial);
+// POST add a new testimonial
+router.post('/testimonial', auth.protect, auth.adminOnly, testimonialController.addTestimonial);
 
-// Delete a testimonial by id (admin only)
-router.delete('/:testimonialId', auth.protect, auth.adminOnly, testimonialController.deleteTestimonial);
+// PUT update a specific testimonial
+router.put('/testimonial/:testimonialId', auth.protect, auth.adminOnly, testimonialController.updateTestimonial);
+
+// DELETE a specific testimonial
+router.delete('/testimonial/:testimonialId', auth.protect, auth.adminOnly, testimonialController.deleteTestimonial);
 
 module.exports = router;

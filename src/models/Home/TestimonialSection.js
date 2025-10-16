@@ -35,6 +35,6 @@ const testimonialSectionSchema = new mongoose.Schema({
     required: true
   },
   testimonials: [testimonialSchema]
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('TestimonialSection', testimonialSectionSchema);
