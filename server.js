@@ -39,6 +39,8 @@ app.use('/api/about/vision', require('./src/routes/About/visionAbout'));
 app.use('/api/about/company', require('./src/routes/About/companyAbout'));
 app.use('/api/about/testimonials', require('./src/routes/About/aboutTestimonials'));
 app.use('/api/services', require('./src/routes/services'));
+app.use('/api/contact-page', require('./src/routes/contactPage'));
+app.use('/api/stories', require('./src/routes/stories'));
 
 
 // Health check endpoint
