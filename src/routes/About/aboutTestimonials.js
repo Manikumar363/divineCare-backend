@@ -4,7 +4,7 @@ const { getAboutTestimonials, updateAboutTestimonials, addTestimonial, updateTes
 const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET section content and all testimonials
-router.get('/', protect, adminOnly, getAboutTestimonials);
+router.get('/', getAboutTestimonials);
 
 // PUT update section content and all testimonials (bulk)
 router.put('/:id', protect, adminOnly, updateAboutTestimonials);

@@ -4,7 +4,7 @@ const { getHomeEvent, updateHomeEvent } = require('../../controllers/Home/homeEv
 const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET home event section data
-router.get('/', protect, adminOnly, getHomeEvent);
+router.get('/', getHomeEvent);
 
 // PUT update home event section data
 router.put('/:id', protect, adminOnly, updateHomeEvent);

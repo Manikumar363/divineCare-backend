@@ -4,7 +4,7 @@ const { getMainAbout, updateMainAbout } = require('../../controllers/About/mainA
 const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET main about section data
-router.get('/', protect, adminOnly, getMainAbout);
+router.get('/', getMainAbout);
 
 // PUT update main about section data
 router.put('/:id', protect, adminOnly, updateMainAbout);

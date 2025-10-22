@@ -4,7 +4,7 @@ const { getAbout, updateAbout } = require('../../controllers/Home/aboutControlle
 const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET about section data
-router.get('/', protect, adminOnly, getAbout);
+router.get('/', getAbout);
 
 
 // PUT update about section

@@ -4,7 +4,7 @@ const { getGallery, updateGallery, createGallery } = require('../../controllers/
 const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET gallery data
-router.get('/', protect, adminOnly, getGallery);
+router.get('/', getGallery);
 
 // POST create gallery data
 

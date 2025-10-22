@@ -4,7 +4,7 @@ const { getTeamSection, addTeamMember, updateTeamSection, deleteTeamMember } = r
 const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET team section data
-router.get('/', protect, adminOnly, getTeamSection);
+router.get('/', getTeamSection);
 
 // POST add a new team member
 router.post('/member', protect, adminOnly, addTeamMember);

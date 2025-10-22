@@ -4,7 +4,7 @@ const { getMissionAbout, updateMissionAbout } = require('../../controllers/About
 const { protect, adminOnly } = require('../../middleware/auth');
 
 // GET mission about section data
-router.get('/', protect, adminOnly, getMissionAbout);
+router.get('/', getMissionAbout);
 
 // PUT update mission about section data
 router.put('/:id', protect, adminOnly, updateMissionAbout);

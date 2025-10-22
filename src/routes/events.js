@@ -4,7 +4,7 @@ const { getAllEvents, createEvent, updateEvent, deleteEvent } = require('../cont
 const { protect, adminOnly } = require('../middleware/auth');
 
 // GET all events
-router.get('/', protect, adminOnly, getAllEvents);
+router.get('/', getAllEvents);
 
 // POST create event
 router.post('/', protect, adminOnly, createEvent);
