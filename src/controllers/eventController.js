@@ -10,6 +10,17 @@ exports.getAllEvents = async (req, res) => {
   }
 };
 
+// GET single event by ID
+exports.getEventById = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    res.status(200).json({ success: true, event });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // POST create event
 exports.createEvent = async (req, res) => {
   try {
@@ -21,7 +32,7 @@ exports.createEvent = async (req, res) => {
       endDate,
       location,
       venueDetails,
-      images
+      image
     } = req.body;
     const event = await Event.create({
       title,
@@ -31,7 +42,7 @@ exports.createEvent = async (req, res) => {
       endDate,
       location,
       venueDetails,
-      images,
+      image,
       createdBy: req.user._id
     });
     res.status(201).json({ success: true, event });
