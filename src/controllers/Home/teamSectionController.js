@@ -44,7 +44,11 @@ exports.deleteTeamMember = async (req, res) => {
   try {
     const section = await TeamSection.findOne();
     if (!section) return res.status(404).json({ success: false, message: 'Team section not found' });
-    section.members.id(req.params.memberId).remove();
+    
+    const memberIndex = section.members.findIndex(member => member._id.toString() === req.params.memberId);
+    if (memberIndex === -1) return res.status(404).json({ success: false, message: 'Team member not found' });
+    
+    section.members.splice(memberIndex, 1);
     await section.save();
     res.status(200).json({ success: true, section });
   } catch (error) {
