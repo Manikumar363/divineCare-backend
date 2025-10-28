@@ -7,10 +7,28 @@ exports.uploadFile = async (req, res) => {
     }
     const uploadResults = [];
     for (const file of req.files) {
-      const result = await cloudinary.uploader.upload(file.path, {
-        folder: 'divinecare',
-        resource_type: 'auto',
-      });
+      let result;
+      
+      // Handle memory storage (buffer) - our updated multer config
+      if (file.buffer) {
+        result = await cloudinary.uploader.upload(
+          `data:${file.mimetype};base64,${file.buffer.toString('base64')}`,
+          {
+            folder: 'divinecare',
+            resource_type: 'auto',
+          }
+        );
+      }
+      // Handle disk storage (path) - fallback for compatibility
+      else if (file.path) {
+        result = await cloudinary.uploader.upload(file.path, {
+          folder: 'divinecare',
+          resource_type: 'auto',
+        });
+      } else {
+        throw new Error('Invalid file format - no buffer or path found');
+      }
+      
       uploadResults.push({
         url: result.secure_url,
         public_id: result.public_id,
@@ -21,6 +39,7 @@ exports.uploadFile = async (req, res) => {
       files: uploadResults,
     });
   } catch (error) {
+    console.error('Upload error:', error);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
