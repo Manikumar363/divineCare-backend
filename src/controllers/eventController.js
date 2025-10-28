@@ -1,4 +1,5 @@
 const Event = require('../models/Event');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinaryHelper');
 
 // GET all events
 exports.getAllEvents = async (req, res) => {
@@ -34,6 +35,18 @@ exports.createEvent = async (req, res) => {
       venueDetails,
       image
     } = req.body;
+    
+    // Handle image upload to Cloudinary
+    let imageUrl = '';
+    let imagePublicId = '';
+    
+    if (image || req.file) {
+      const imageData = req.file || image;
+      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/events');
+      imageUrl = uploadResult.secure_url;
+      imagePublicId = uploadResult.public_id;
+    }
+    
     const event = await Event.create({
       title,
       shortDescription,
@@ -42,7 +55,8 @@ exports.createEvent = async (req, res) => {
       endDate,
       location,
       venueDetails,
-      image,
+      image: imageUrl,
+      imagePublicId,
       createdBy: req.user._id
     });
     res.status(201).json({ success: true, event });
@@ -54,13 +68,23 @@ exports.createEvent = async (req, res) => {
 // PUT update event
 exports.updateEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body },
-      { new: true }
-    );
+    const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
-    res.status(200).json({ success: true, event });
+    
+    const { image, ...otherFields } = req.body;
+    let updateData = { ...otherFields };
+    
+    // Handle image update if provided
+    if (image || req.file) {
+      const imageData = req.file || image;
+      const oldPublicId = event.imagePublicId;
+      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/events', oldPublicId);
+      updateData.image = uploadResult.secure_url;
+      updateData.imagePublicId = uploadResult.public_id;
+    }
+    
+    const updatedEvent = await Event.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.status(200).json({ success: true, event: updatedEvent });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -69,8 +93,15 @@ exports.updateEvent = async (req, res) => {
 // DELETE event
 exports.deleteEvent = async (req, res) => {
   try {
-    const event = await Event.findByIdAndDelete(req.params.id);
+    const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    
+    // Delete image from Cloudinary before removing event
+    if (event.imagePublicId) {
+      await deleteFromCloudinary(event.imagePublicId);
+    }
+    
+    await Event.findByIdAndDelete(req.params.id);
     res.status(200).json({ success: true, message: 'Event deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

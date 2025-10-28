@@ -6,7 +6,8 @@ const statisticSchema = new mongoose.Schema({
 }, { _id: false });
 
 const testimonialSchema = new mongoose.Schema({
-  image: { type: String, required: true },
+  image: { type: String, required: true }, // Cloudinary secure_url
+  imagePublicId: { type: String }, // Cloudinary public_id for deletion
   rating: { type: Number, required: true },
   name: { type: String, required: true },
   title: { type: String, required: true },

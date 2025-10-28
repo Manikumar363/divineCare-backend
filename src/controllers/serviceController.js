@@ -1,4 +1,5 @@
 const Service = require('../models/Service');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinaryHelper');
 
 // Get all services
 exports.getAllServices = async (req, res) => {
@@ -25,11 +26,25 @@ exports.getServiceById = async (req, res) => {
 exports.createService = async (req, res) => {
   try {
     const { title, shortDescription, detailedDescription, image } = req.body;
-    let imageUrl = image;
-    if (req.file && req.file.path) {
-      imageUrl = req.file.path;
+    
+    // Handle image upload to Cloudinary
+    let imageUrl = '';
+    let imagePublicId = '';
+    
+    if (image || req.file) {
+      const imageData = req.file || image;
+      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/services');
+      imageUrl = uploadResult.secure_url;
+      imagePublicId = uploadResult.public_id;
     }
-    const service = new Service({ title, shortDescription, detailedDescription, image: imageUrl });
+    
+    const service = new Service({ 
+      title, 
+      shortDescription, 
+      detailedDescription, 
+      image: imageUrl,
+      imagePublicId 
+    });
     await service.save();
     res.status(201).json(service);
   } catch (error) {
@@ -41,15 +56,22 @@ exports.createService = async (req, res) => {
 exports.updateService = async (req, res) => {
   try {
     const { title, shortDescription, detailedDescription, image } = req.body;
-    let updateData = { title, shortDescription, detailedDescription };
-    if (req.file && req.file.path) {
-      updateData.image = req.file.path;
-    } else if (image) {
-      updateData.image = image;
-    }
-    const service = await Service.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const service = await Service.findById(req.params.id);
     if (!service) return res.status(404).json({ message: 'Service not found' });
-    res.status(200).json(service);
+    
+    let updateData = { title, shortDescription, detailedDescription };
+    
+    // Handle image update if provided
+    if (image || req.file) {
+      const imageData = req.file || image;
+      const oldPublicId = service.imagePublicId;
+      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/services', oldPublicId);
+      updateData.image = uploadResult.secure_url;
+      updateData.imagePublicId = uploadResult.public_id;
+    }
+    
+    const updatedService = await Service.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.status(200).json(updatedService);
   } catch (error) {
     res.status(500).json({ message: 'Error updating service', error });
   }
@@ -58,8 +80,15 @@ exports.updateService = async (req, res) => {
 // Delete a service
 exports.deleteService = async (req, res) => {
   try {
-    const service = await Service.findByIdAndDelete(req.params.id);
+    const service = await Service.findById(req.params.id);
     if (!service) return res.status(404).json({ message: 'Service not found' });
+    
+    // Delete image from Cloudinary before removing service
+    if (service.imagePublicId) {
+      await deleteFromCloudinary(service.imagePublicId);
+    }
+    
+    await Service.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: 'Service deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting service', error });

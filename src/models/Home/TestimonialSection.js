@@ -21,7 +21,10 @@ const testimonialSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    required: true // Cloudinary URL
+    required: true // Cloudinary secure_url
+  },
+  imagePublicId: {
+    type: String // Cloudinary public_id for deletion
   }
 });
 

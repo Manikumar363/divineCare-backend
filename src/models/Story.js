@@ -7,8 +7,11 @@ const storySchema = new mongoose.Schema({
     trim: true
   },
   image: {
-    type: String, // URL to the image
+    type: String, // Cloudinary secure_url
     required: false
+  },
+  imagePublicId: {
+    type: String // Cloudinary public_id for deletion
   },
   author: {
     type: String,

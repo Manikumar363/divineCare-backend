@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { getAboutTestimonials, updateAboutTestimonials, addTestimonial, updateTestimonial, deleteTestimonial } = require('../../controllers/About/aboutTestimonialsController');
 const { protect, adminOnly } = require('../../middleware/auth');
+const upload = require('../../middleware/multer');
 
 // GET section content and all testimonials
 router.get('/', getAboutTestimonials);
@@ -10,10 +11,10 @@ router.get('/', getAboutTestimonials);
 router.put('/:id', protect, adminOnly, updateAboutTestimonials);
 
 // POST add a new testimonial
-router.post('/testimonial', protect, adminOnly, addTestimonial);
+router.post('/testimonial', protect, adminOnly, upload.single('image'), addTestimonial);
 
 // PUT update a specific testimonial
-router.put('/testimonial/:testimonialId', protect, adminOnly, updateTestimonial);
+router.put('/testimonial/:testimonialId', protect, adminOnly, upload.single('image'), updateTestimonial);
 
 // DELETE a specific testimonial
 router.delete('/testimonial/:testimonialId', protect, adminOnly, deleteTestimonial);

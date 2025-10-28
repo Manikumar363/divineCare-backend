@@ -1,4 +1,5 @@
 const Story = require('../models/Story');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinaryHelper');
 
 // Get all stories
 exports.getAllStories = async (req, res) => {
@@ -25,7 +26,26 @@ exports.getStoryById = async (req, res) => {
 exports.createStory = async (req, res) => {
   try {
     const { title, image, author, content, date } = req.body;
-    const story = new Story({ title, image, author, content, date });
+    
+    // Handle image upload to Cloudinary
+    let imageUrl = '';
+    let imagePublicId = '';
+    
+    if (image || req.file) {
+      const imageData = req.file || image;
+      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/stories');
+      imageUrl = uploadResult.secure_url;
+      imagePublicId = uploadResult.public_id;
+    }
+    
+    const story = new Story({ 
+      title, 
+      image: imageUrl, 
+      imagePublicId,
+      author, 
+      content, 
+      date 
+    });
     await story.save();
     res.status(201).json(story);
   } catch (error) {
@@ -37,10 +57,22 @@ exports.createStory = async (req, res) => {
 exports.updateStory = async (req, res) => {
   try {
     const { title, image, author, content, date } = req.body;
-    const updateData = { title, image, author, content, date };
-    const story = await Story.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const story = await Story.findById(req.params.id);
     if (!story) return res.status(404).json({ message: 'Story not found' });
-    res.status(200).json(story);
+    
+    let updateData = { title, author, content, date };
+    
+    // Handle image update if provided
+    if (image || req.file) {
+      const imageData = req.file || image;
+      const oldPublicId = story.imagePublicId;
+      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/stories', oldPublicId);
+      updateData.image = uploadResult.secure_url;
+      updateData.imagePublicId = uploadResult.public_id;
+    }
+    
+    const updatedStory = await Story.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    res.status(200).json(updatedStory);
   } catch (error) {
     res.status(500).json({ message: 'Error updating story', error });
   }
@@ -49,8 +81,15 @@ exports.updateStory = async (req, res) => {
 // Delete a story
 exports.deleteStory = async (req, res) => {
   try {
-    const story = await Story.findByIdAndDelete(req.params.id);
+    const story = await Story.findById(req.params.id);
     if (!story) return res.status(404).json({ message: 'Story not found' });
+    
+    // Delete image from Cloudinary before removing story
+    if (story.imagePublicId) {
+      await deleteFromCloudinary(story.imagePublicId);
+    }
+    
+    await Story.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: 'Story deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting story', error });

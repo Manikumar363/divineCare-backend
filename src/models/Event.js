@@ -8,7 +8,8 @@ const eventSchema = new mongoose.Schema({
   endDate: { type: Date },
   location: { type: String },
   venueDetails: { type: String },
-  image: { type: String }, // Single Cloudinary URL
+  image: { type: String }, // Cloudinary secure_url
+  imagePublicId: { type: String }, // Cloudinary public_id for deletion
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
