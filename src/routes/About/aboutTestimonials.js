@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getAboutTestimonials, updateAboutTestimonials, addTestimonial, updateTestimonial, deleteTestimonial } = require('../../controllers/about/aboutTestimonialsController');
+const { getAboutTestimonials, updateAboutTestimonials, addTestimonial, updateTestimonial, deleteTestimonial } = require('../../controllers/About/aboutTestimonialsController');
 const { protect, adminOnly } = require('../../middleware/auth');
 const upload = require('../../middleware/multer');
 
