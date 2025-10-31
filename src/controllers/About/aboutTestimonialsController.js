@@ -32,7 +32,18 @@ exports.updateAboutTestimonials = async (req, res) => {
     if (sectionHeading !== undefined) about.sectionHeading = sectionHeading;
     if (sectionDescription !== undefined) about.sectionDescription = sectionDescription;
     if (statistics !== undefined) about.statistics = statistics;
-    if (testimonials !== undefined) about.testimonials = testimonials;
+    if (testimonials !== undefined) {
+      // Ensure each testimonial has a proper _id when updating the array
+      const processedTestimonials = testimonials.map(testimonial => {
+        if (!testimonial._id) {
+          // Generate new ObjectId if _id is missing
+          const mongoose = require('mongoose');
+          testimonial._id = new mongoose.Types.ObjectId();
+        }
+        return testimonial;
+      });
+      about.testimonials = processedTestimonials;
+    }
     
     await about.save();
     res.status(200).json({ success: true, about });
@@ -59,7 +70,9 @@ exports.addTestimonial = async (req, res) => {
       imagePublicId = uploadResult.public_id;
     }
     
+    const mongoose = require('mongoose');
     about.testimonials.push({ 
+      _id: new mongoose.Types.ObjectId(), // Ensure proper ObjectId
       image: imageUrl, 
       imagePublicId, 
       rating, 
