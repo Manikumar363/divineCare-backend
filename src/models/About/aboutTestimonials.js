@@ -17,6 +17,8 @@ const testimonialSchema = new mongoose.Schema({
 const aboutTestimonialsSchema = new mongoose.Schema({
   sectionHeading: { type: String, required: true },
   sectionDescription: { type: String, required: true },
+  sectionImage: { type: String }, // Cloudinary secure_url for section content
+  sectionImagePublicId: { type: String }, // Cloudinary public_id for deletion
   statistics: [statisticSchema], // stat 1 and stat 2
   testimonials: [testimonialSchema]
 }, { timestamps: true });

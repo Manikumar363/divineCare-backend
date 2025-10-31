@@ -8,7 +8,7 @@ const upload = require('../../middleware/multer');
 router.get('/', getAboutTestimonials);
 
 // PUT update section content and all testimonials (bulk)
-router.put('/:id', protect, adminOnly, updateAboutTestimonials);
+router.put('/:id', protect, adminOnly, upload.single('sectionImage'), updateAboutTestimonials);
 
 // POST add a new testimonial
 router.post('/testimonial', protect, adminOnly, upload.single('image'), addTestimonial);

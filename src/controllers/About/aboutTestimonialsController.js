@@ -14,12 +14,27 @@ exports.getAboutTestimonials = async (req, res) => {
 // PUT update section content and all testimonials (bulk)
 exports.updateAboutTestimonials = async (req, res) => {
   try {
-    const about = await AboutTestimonials.findByIdAndUpdate(
-      req.params.id,
-      { ...req.body },
-      { new: true }
-    );
+    const about = await AboutTestimonials.findById(req.params.id);
     if (!about) return res.status(404).json({ success: false, message: 'About Testimonials section not found' });
+    
+    const { sectionHeading, sectionDescription, sectionImage, statistics, testimonials } = req.body;
+    
+    // Handle section image update if provided
+    if (sectionImage || req.file) {
+      const imageData = req.file || sectionImage;
+      const oldPublicId = about.sectionImagePublicId;
+      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/about-testimonials', oldPublicId);
+      about.sectionImage = uploadResult.secure_url;
+      about.sectionImagePublicId = uploadResult.public_id;
+    }
+    
+    // Update other fields
+    if (sectionHeading !== undefined) about.sectionHeading = sectionHeading;
+    if (sectionDescription !== undefined) about.sectionDescription = sectionDescription;
+    if (statistics !== undefined) about.statistics = statistics;
+    if (testimonials !== undefined) about.testimonials = testimonials;
+    
+    await about.save();
     res.status(200).json({ success: true, about });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
