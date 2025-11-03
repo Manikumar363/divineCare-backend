@@ -11,6 +11,14 @@ const eventSchema = new mongoose.Schema({
   image: { type: String }, // Cloudinary secure_url
   imagePublicId: { type: String }, // Cloudinary public_id for deletion
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  registrations: [
+    {
+      firstName: { type: String, required: true },
+      lastName: { type: String },
+      email: { type: String, required: true },
+      createdAt: { type: Date, default: Date.now }
+    }
+  ],
 }, { timestamps: true });
 
 module.exports = mongoose.model('Event', eventSchema);

@@ -107,3 +107,39 @@ exports.deleteEvent = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// POST register for an event (public)
+exports.registerForEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+
+    const { firstName, lastName, email } = req.body;
+    if (!firstName || !email) return res.status(400).json({ success: false, message: 'firstName and email are required' });
+
+    const registration = {
+      firstName,
+      lastName,
+      email,
+      createdAt: new Date()
+    };
+
+    event.registrations.push(registration);
+    await event.save();
+
+    res.status(201).json({ success: true, message: 'Registered for event', registration });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET registrations for an event (admin)
+exports.getEventRegistrations = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id).select('title registrations');
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    res.status(200).json({ success: true, registrations: event.registrations });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
