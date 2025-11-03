@@ -18,11 +18,14 @@ const uploadToCloudinary = async (imageData, folder = 'divinecare', oldPublicId 
 
     // Handle file upload from multer (memory storage - has buffer)
     if (imageData && imageData.buffer) {
+      // Choose resource_type: use 'image' for images, 'raw' for pdf/doc types
+      const isImage = imageData.mimetype && imageData.mimetype.startsWith('image/');
+      const resourceType = isImage ? 'image' : 'raw';
       uploadResult = await cloudinary.uploader.upload(
         `data:${imageData.mimetype};base64,${imageData.buffer.toString('base64')}`,
         {
           folder: folder,
-          resource_type: 'auto'
+          resource_type: resourceType
         }
       );
     }
@@ -34,14 +37,20 @@ const uploadToCloudinary = async (imageData, folder = 'divinecare', oldPublicId 
       });
     }
     // Handle base64 string
-    else if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
+    else if (typeof imageData === 'string' && imageData.startsWith('data:')) {
+      // base64 data URL - determine resource type from mime
+      const matches = imageData.match(/^data:([^;]+);base64,/);
+      const mime = matches && matches[1] ? matches[1] : '';
+      const isImage = mime.startsWith('image/');
+      const resourceType = isImage ? 'image' : 'raw';
       uploadResult = await cloudinary.uploader.upload(imageData, {
         folder: folder,
-        resource_type: 'auto'
+        resource_type: resourceType
       });
     }
     // Handle direct URL (already uploaded)
     else if (typeof imageData === 'string' && imageData.startsWith('http')) {
+      // Direct URL - assume already hosted. We can't infer public_id.
       return {
         secure_url: imageData,
         public_id: null // We don't have public_id for external URLs
@@ -56,8 +65,9 @@ const uploadToCloudinary = async (imageData, folder = 'divinecare', oldPublicId 
       public_id: uploadResult.public_id
     };
   } catch (error) {
-    console.error('Cloudinary upload error:', error);
-    throw new Error('Failed to upload image to Cloudinary');
+    // Log full error for debugging and rethrow a more descriptive message
+    console.error('Cloudinary upload error:', error && error.message ? error.message : error);
+    throw new Error('Failed to upload file to Cloudinary: ' + (error && error.message ? error.message : 'unknown error'));
   }
 };
 

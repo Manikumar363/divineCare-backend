@@ -41,6 +41,8 @@ app.use('/api/about/testimonials', require('./src/routes/About/aboutTestimonials
 app.use('/api/services', require('./src/routes/services'));
 app.use('/api/contact-page', require('./src/routes/contactPage'));
 app.use('/api/stories', require('./src/routes/stories'));
+// Careers / Jobs
+app.use('/api/careers', require('./src/routes/career/jobs'));
 
 
 // Health check endpoint
