@@ -15,9 +15,21 @@ exports.getJobs = async (req, res) => {
 // GET single job by id
 exports.getJobById = async (req, res) => {
   try {
-    const job = await Job.findById(req.params.id);
+    // Exclude applicants from the public job view for privacy
+    const job = await Job.findById(req.params.id).select('-applicants');
     if (!job) return res.status(404).json({ success: false, message: 'Job not found' });
     res.status(200).json({ success: true, job });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET applicants for a job (admin only)
+exports.getJobApplicants = async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id).select('title applicants');
+    if (!job) return res.status(404).json({ success: false, message: 'Job not found' });
+    res.status(200).json({ success: true, applicants: job.applicants });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

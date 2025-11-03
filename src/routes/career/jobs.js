@@ -6,7 +6,8 @@ const {
   createJob,
   updateJob,
   deleteJob,
-  applyToJob
+  applyToJob,
+  getJobApplicants
 } = require('../../controllers/career/careerController');
 const { protect, adminOnly } = require('../../middleware/auth');
 const uploadResume = require('../../middleware/multerResume');
@@ -28,5 +29,8 @@ router.delete('/:id', protect, adminOnly, deleteJob);
 
 // Public: apply to job (file upload allowed)
 router.post('/:id/apply', uploadResume.single('resume'), applyToJob);
+
+// Admin: list applicants for a job
+router.get('/:id/applicants', protect, adminOnly, getJobApplicants);
 
 module.exports = router;
