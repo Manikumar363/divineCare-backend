@@ -43,6 +43,8 @@ app.use('/api/contact-page', require('./src/routes/contactPage'));
 app.use('/api/stories', require('./src/routes/stories'));
 // Careers / Jobs
 app.use('/api/careers', require('./src/routes/career/jobs'));
+// Documents
+app.use('/api/documents', require('./src/routes/documents'));
 
 
 // Health check endpoint
