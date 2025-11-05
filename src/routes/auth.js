@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
     signin,
+    login,
     forgotPassword,
     validateToken,
     resetPassword,
@@ -14,6 +15,11 @@ const { protect, adminOnly } = require('../middleware/auth');
 // @desc    Admin sign in
 // @access  Public
 router.post('/signin', signin);
+
+// @route   POST /api/auth/login
+// @desc    Portal login for admin and users
+// @access  Public
+router.post('/login', login);
 
 // @route   POST /api/auth/forgot-password
 // @desc    Send password reset email

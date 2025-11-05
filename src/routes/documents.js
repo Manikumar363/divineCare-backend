@@ -10,9 +10,9 @@ const {
   deleteDocument
 } = require('../controllers/documentController');
 
-// Public: list and view documents
-router.get('/', getDocuments);
-router.get('/:id', getDocumentById);
+// Protected routes: both admin and users can view documents
+router.get('/', protect, getDocuments);
+router.get('/:id', protect, getDocumentById);
 
 // Admin: create, update, delete
 router.post('/', protect, adminOnly, uploadResume.array('files', 13), createDocuments);

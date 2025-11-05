@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
+const { protect, adminOnly } = require('../middleware/auth');
+const { createUser } = require('../controllers/userController');
 
-// User routes will be added here
-// Example: router.get('/profile', getUserProfile);
+// Admin routes
+router.post('/create', protect, adminOnly, createUser);
 
 module.exports = router;

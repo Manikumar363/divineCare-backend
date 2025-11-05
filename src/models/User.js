@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
     },
     lastName: {
         type: String,
-        required: [true, 'Last name is required'],
         trim: true,
         maxlength: [50, 'Last name cannot exceed 50 characters']
     },
@@ -44,6 +43,14 @@ const userSchema = new mongoose.Schema({
         type: Date,
         select: false
     },
+    otpToken: {
+        type: String,
+        select: false
+    },
+    otpExpire: {
+        type: Date,
+        select: false
+    },
     lastLogin: {
         type: Date
     },
@@ -59,6 +66,7 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ resetPasswordToken: 1 });
+userSchema.index({ otpToken: 1 });
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
