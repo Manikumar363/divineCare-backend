@@ -23,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/contact', require('./src/routes/contact'));
+app.use('/api/subscribe', require('./src/routes/subscribe'));
 app.use('/api/admin', require('./src/routes/admin'));
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/upload', require('./src/routes/upload'));

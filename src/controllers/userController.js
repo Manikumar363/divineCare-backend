@@ -1,3 +1,16 @@
+/**
+ * Fetch all users with role 'user' (team members)
+ * @route GET /api/users/team
+ * @access Admin only
+ */
+exports.getTeamUsers = async (req, res) => {
+    try {
+        const users = await User.find({ role: 'user' }).select('-password -resetPasswordToken -resetPasswordExpires');
+        res.status(200).json({ success: true, users });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching team users', error: error.message });
+    }
+};
 const User = require('../models/User');
 const { sendWelcomeEmail } = require('../utils/emailService');
 const crypto = require('crypto');
