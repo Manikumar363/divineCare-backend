@@ -22,7 +22,7 @@ const crypto = require('crypto');
  */
 exports.createUser = async (req, res) => {
     try {
-        const { name, email } = req.body;
+    const { name, email, contact, designation } = req.body;
 
         // Validate required fields
         if (!name || !email) {
@@ -56,7 +56,9 @@ exports.createUser = async (req, res) => {
             email,
             password,
             role: 'user',
-            isActive: true
+            isActive: true,
+            contact: contact || '',
+            designation: designation || ''
         };
 
         // Create new user
