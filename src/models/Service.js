@@ -15,11 +15,18 @@ const serviceSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  image: {
+  image1: {
     type: String, // Cloudinary secure_url
     required: false
   },
-  imagePublicId: {
+  image1PublicId: {
+    type: String // Cloudinary public_id for deletion
+  },
+  image2: {
+    type: String, // Cloudinary secure_url
+    required: false
+  },
+  image2PublicId: {
     type: String // Cloudinary public_id for deletion
   }
 }, { timestamps: true });
