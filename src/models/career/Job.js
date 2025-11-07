@@ -5,8 +5,8 @@ const applicantSchema = new mongoose.Schema({
   email: { type: String, required: true },
   contactNumber: { type: String },
   address: { type: String },
-  resume: { type: String }, // secure_url
-  resumePublicId: { type: String },
+  resume: { type: String }, // Antryk URL
+  resumeKey: { type: String }, // Antryk object key for deletion
   coverLetter: { type: String },
   createdAt: { type: Date, default: Date.now }
 }, { _id: true });

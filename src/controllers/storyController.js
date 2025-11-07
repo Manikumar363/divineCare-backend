@@ -1,5 +1,5 @@
 const Story = require('../models/Story');
-const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinaryHelper');
+const { uploadToAntryk, deleteFromAntryk } = require('../utils/cloudinaryHelper');
 
 // Get all stories
 exports.getAllStories = async (req, res) => {
@@ -27,21 +27,18 @@ exports.createStory = async (req, res) => {
   try {
     const { title, image, author, content, date } = req.body;
     
-    // Handle image upload to Cloudinary
-    let imageUrl = '';
-    let imagePublicId = '';
-    
+    // Handle image upload to Antryk
+    let imageKey = '';
     if (image || req.file) {
+      const { v4: uuidv4 } = require('uuid');
       const imageData = req.file || image;
-      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/stories');
-      imageUrl = uploadResult.secure_url;
-      imagePublicId = uploadResult.public_id;
+      const key = `stories/${uuidv4()}_${imageData.originalname || 'image'}`;
+      const uploadResult = await uploadToAntryk(imageData, key);
+      imageKey = uploadResult.key;
     }
-    
     const story = new Story({ 
       title, 
-      image: imageUrl, 
-      imagePublicId,
+      imageKey,
       author, 
       content, 
       date 
@@ -64,11 +61,20 @@ exports.updateStory = async (req, res) => {
     
     // Handle image update if provided
     if (image || req.file) {
+      const { v4: uuidv4 } = require('uuid');
       const imageData = req.file || image;
-      const oldPublicId = story.imagePublicId;
-      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/stories', oldPublicId);
-      updateData.image = uploadResult.secure_url;
-      updateData.imagePublicId = uploadResult.public_id;
+      // Delete old image from Antryk if present
+      if (story.imageKey) {
+        const { deleteFromAntryk } = require('../utils/cloudinaryHelper');
+        try {
+          await deleteFromAntryk(story.imageKey);
+        } catch (err) {
+          console.error('Failed to delete old image from Antryk:', err.message);
+        }
+      }
+      const key = `stories/${uuidv4()}_${imageData.originalname || 'image'}`;
+      const uploadResult = await uploadToAntryk(imageData, key);
+      updateData.imageKey = uploadResult.key;
     }
     
     const updatedStory = await Story.findByIdAndUpdate(req.params.id, updateData, { new: true });
@@ -84,11 +90,16 @@ exports.deleteStory = async (req, res) => {
     const story = await Story.findById(req.params.id);
     if (!story) return res.status(404).json({ message: 'Story not found' });
     
-    // Delete image from Cloudinary before removing story
-    if (story.imagePublicId) {
-      await deleteFromCloudinary(story.imagePublicId);
+    // Delete image from Antryk before removing story
+    if (story.imageKey) {
+      const { deleteFromAntryk } = require('../utils/cloudinaryHelper');
+      try {
+        await deleteFromAntryk(story.imageKey);
+      } catch (err) {
+        console.error('Failed to delete image from Antryk:', err.message);
+      }
     }
-    
+
     await Story.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: 'Story deleted successfully' });
   } catch (error) {

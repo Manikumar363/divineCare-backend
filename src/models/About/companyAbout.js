@@ -8,6 +8,8 @@ const statsSchema = new mongoose.Schema({
 const companyAboutSchema = new mongoose.Schema({
     heading: {type: String, required: true},
     description: {type: String, required: true},
+    image: {type: String}, // Antryk URL for company image
+    imageKey: {type: String}, // Antryk object key for deletion
     stats: [statsSchema]
 }, {timestamps: true});
 

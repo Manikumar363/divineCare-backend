@@ -11,8 +11,10 @@ const aboutSchema = new mongoose.Schema({
   mainDescription: { type: String, required: true },
   topRightDescription: { type: String, required: true },
   keyPointers: [keyPointerSchema],
-  centerImage: { type: String }, // Cloudinary URL
-  rightImage: { type: String }, // Cloudinary URL
+  centerImage: { type: String }, // Antryk URL
+  centerImageKey: { type: String }, // Antryk object key
+  rightImage: { type: String }, // Antryk URL
+  rightImageKey: { type: String }, // Antryk object key
 }, { timestamps: true });
 
 module.exports = mongoose.model('About', aboutSchema);

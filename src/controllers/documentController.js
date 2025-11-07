@@ -1,6 +1,6 @@
 
 const Document = require('../models/Document');
-const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinaryHelper');
+const { uploadToAntryk, deleteFromAntryk } = require('../utils/cloudinaryHelper');
 
 // Upload a single document (admin)
 exports.uploadSingleDocument = async (req, res) => {
@@ -12,16 +12,15 @@ exports.uploadSingleDocument = async (req, res) => {
     const category = req.body.category || title;
     const description = req.body.description || '';
 
-    // Upload to Cloudinary
-    const uploadResult = await uploadToCloudinary(req.file, 'divinecare/documents');
-
-    // Create document entry
+    // Upload to Antryk
+    const { v4: uuidv4 } = require('uuid');
+    const key = `documents/${uuidv4()}_${req.file.originalname}`;
+    const uploadResult = await uploadToAntryk(req.file, key);
     const doc = await Document.create({
       title,
       category,
       description,
-      fileUrl: uploadResult.secure_url,
-      filePublicId: uploadResult.public_id,
+      fileKey: uploadResult.key,
       mimeType: req.file.mimetype,
       size: req.file.size,
       uploadedBy: req.user ? req.user._id : undefined
@@ -51,20 +50,20 @@ exports.createDocuments = async (req, res) => {
     const uploadPromises = req.files.map(async (file, index) => {
       try {
         // Get category or fallback to filename without extension
+        const { v4: uuidv4 } = require('uuid');
         const fileName = file.originalname.replace(/\.[^/.]+$/, "");
         const category = categories[index] || fileName;
         const title = categories[index] || fileName;
 
-        // Upload to Cloudinary
-        const uploadResult = await uploadToCloudinary(file, 'divinecare/documents');
-
+        // Upload to Antryk
+        const key = `documents/${uuidv4()}_${file.originalname}`;
+        const uploadResult = await uploadToAntryk(file, key);
         // Create document entry
         const doc = await Document.create({
           title,
           category,
           description: req.body.description,
-          fileUrl: uploadResult.secure_url,
-          filePublicId: uploadResult.public_id,
+          fileKey: uploadResult.key,
           mimeType: file.mimetype,
           size: file.size,
           uploadedBy: req.user ? req.user._id : undefined
@@ -141,15 +140,22 @@ exports.updateDocument = async (req, res) => {
     const { title, category, description, fileUrl } = req.body;
 
     // Handle file replacement
-    if (req.file || fileUrl) {
-      const fileData = req.file || fileUrl;
-      const uploadResult = await uploadToCloudinary(fileData, 'divinecare/documents', doc.filePublicId);
-      doc.fileUrl = uploadResult.secure_url;
-      doc.filePublicId = uploadResult.public_id;
-      if (req.file) {
-        doc.mimeType = req.file.mimetype;
-        doc.size = req.file.size;
+    if (req.file) {
+      // Delete old file from Antryk if present
+      if (doc.fileKey) {
+        const { deleteFromAntryk } = require('../utils/cloudinaryHelper');
+        try {
+          await deleteFromAntryk(doc.fileKey);
+        } catch (err) {
+          console.error('Failed to delete old file from Antryk:', err.message);
+        }
       }
+      const { v4: uuidv4 } = require('uuid');
+      const key = `documents/${uuidv4()}_${req.file.originalname}`;
+      const uploadResult = await uploadToAntryk(req.file, key);
+      doc.fileKey = uploadResult.key;
+      doc.mimeType = req.file.mimetype;
+      doc.size = req.file.size;
     }
 
     if (title !== undefined) doc.title = title;
@@ -169,11 +175,12 @@ exports.deleteDocument = async (req, res) => {
     const doc = await Document.findById(req.params.id);
     if (!doc) return res.status(404).json({ success: false, message: 'Document not found' });
 
-    if (doc.filePublicId) {
+    if (doc.fileKey) {
+      const { deleteFromAntryk } = require('../utils/cloudinaryHelper');
       try {
-        await deleteFromCloudinary(doc.filePublicId);
+        await deleteFromAntryk(doc.fileKey);
       } catch (err) {
-        console.error('Failed to delete file from Cloudinary:', err.message);
+        console.error('Failed to delete file from Antryk:', err.message);
       }
     }
 

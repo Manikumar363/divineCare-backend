@@ -8,8 +8,9 @@ router.get('/', getGallery);
 
 // POST create gallery data
 
+const upload = require('../../middleware/multer');
 // PUT update gallery data
-router.put('/:id', protect, adminOnly, updateGallery);
+router.put('/:id', protect, adminOnly, upload.single('image'), updateGallery);
 
 module.exports = router;
 // Removed POST route for creating gallery data

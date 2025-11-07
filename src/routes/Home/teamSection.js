@@ -11,7 +11,7 @@ router.get('/', getTeamSection);
 router.post('/member', protect, adminOnly, upload.single('image'), addTeamMember);
 
 // PUT update section info or a team member
-router.put('/:id', protect, adminOnly, updateTeamSection);
+router.put('/:id', protect, adminOnly, upload.single('image'), updateTeamSection);
 
 // DELETE a team member
 router.delete('/member/:memberId', protect, adminOnly, deleteTeamMember);

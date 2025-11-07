@@ -7,11 +7,11 @@ const storySchema = new mongoose.Schema({
     trim: true
   },
   image: {
-    type: String, // Cloudinary secure_url
+    type: String, // Antryk file URL
     required: false
   },
-  imagePublicId: {
-    type: String // Cloudinary public_id for deletion
+  imageKey: {
+    type: String // Antryk object key
   },
   author: {
     type: String,

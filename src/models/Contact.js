@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const contactSchema = new mongoose.Schema({
+    image: {
+        type: String // Antryk file URL
+    },
+    imageKey: {
+        type: String // Antryk object key
+    },
     firstName: {
         type: String,
         required: [true, 'First name is required'],

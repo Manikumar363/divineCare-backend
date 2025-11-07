@@ -1,5 +1,5 @@
 const Event = require('../models/Event');
-const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinaryHelper');
+const { uploadToAntryk, deleteFromAntryk } = require('../utils/cloudinaryHelper');
 
 // GET all events
 exports.getAllEvents = async (req, res) => {
@@ -36,17 +36,15 @@ exports.createEvent = async (req, res) => {
       image
     } = req.body;
     
-    // Handle image upload to Cloudinary
-    let imageUrl = '';
-    let imagePublicId = '';
-    
+    // Handle image upload to Antryk
+    let imageKey = '';
     if (image || req.file) {
+      const { v4: uuidv4 } = require('uuid');
       const imageData = req.file || image;
-      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/events');
-      imageUrl = uploadResult.secure_url;
-      imagePublicId = uploadResult.public_id;
+      const key = `events/${uuidv4()}_${imageData.originalname || 'image'}`;
+      const uploadResult = await uploadToAntryk(imageData, key);
+      imageKey = uploadResult.key;
     }
-    
     const event = await Event.create({
       title,
       shortDescription,
@@ -55,8 +53,7 @@ exports.createEvent = async (req, res) => {
       endDate,
       location,
       venueDetails,
-      image: imageUrl,
-      imagePublicId,
+      imageKey,
       createdBy: req.user._id
     });
     res.status(201).json({ success: true, event });
@@ -76,11 +73,21 @@ exports.updateEvent = async (req, res) => {
     
     // Handle image update if provided
     if (image || req.file) {
+      const { v4: uuidv4 } = require('uuid');
       const imageData = req.file || image;
-      const oldPublicId = event.imagePublicId;
-      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/events', oldPublicId);
-      updateData.image = uploadResult.secure_url;
-      updateData.imagePublicId = uploadResult.public_id;
+      // Delete old image from Antryk if present
+      if (event.imageKey) {
+        const { deleteFromAntryk } = require('../utils/cloudinaryHelper');
+        try {
+          await deleteFromAntryk(event.imageKey);
+        } catch (err) {
+          console.error('Failed to delete old image from Antryk:', err.message);
+        }
+      }
+      const key = `events/${uuidv4()}_${imageData.originalname || 'image'}`;
+      const { uploadToAntryk } = require('../utils/cloudinaryHelper');
+      const uploadResult = await uploadToAntryk(imageData, key);
+      updateData.imageKey = uploadResult.key;
     }
     
     const updatedEvent = await Event.findByIdAndUpdate(req.params.id, updateData, { new: true });
@@ -96,11 +103,16 @@ exports.deleteEvent = async (req, res) => {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
     
-    // Delete image from Cloudinary before removing event
-    if (event.imagePublicId) {
-      await deleteFromCloudinary(event.imagePublicId);
+    // Delete image from Antryk before removing event
+    if (event.imageKey) {
+      const { deleteFromAntryk } = require('../utils/cloudinaryHelper');
+      try {
+        await deleteFromAntryk(event.imageKey);
+      } catch (err) {
+        console.error('Failed to delete image from Antryk:', err.message);
+      }
     }
-    
+
     await Event.findByIdAndDelete(req.params.id);
     res.status(200).json({ success: true, message: 'Event deleted' });
   } catch (error) {

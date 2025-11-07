@@ -6,8 +6,8 @@ const statisticSchema = new mongoose.Schema({
 }, { _id: false });
 
 const testimonialSchema = new mongoose.Schema({
-  image: { type: String, required: true }, // Cloudinary secure_url
-  imagePublicId: { type: String }, // Cloudinary public_id for deletion
+  image: { type: String, required: true }, // Antryk URL
+  imageKey: { type: String }, // Antryk object key for deletion
   rating: { type: Number, required: true },
   name: { type: String, required: true },
   title: { type: String, required: true },
@@ -17,8 +17,8 @@ const testimonialSchema = new mongoose.Schema({
 const aboutTestimonialsSchema = new mongoose.Schema({
   sectionHeading: { type: String, required: true },
   sectionDescription: { type: String, required: true },
-  sectionImage: { type: String }, // Cloudinary secure_url for section content
-  sectionImagePublicId: { type: String }, // Cloudinary public_id for deletion
+  sectionImage: { type: String }, // Antryk URL for section content
+  sectionImageKey: { type: String }, // Antryk object key for deletion
   statistics: [statisticSchema], // stat 1 and stat 2
   testimonials: [testimonialSchema]
 }, { timestamps: true });

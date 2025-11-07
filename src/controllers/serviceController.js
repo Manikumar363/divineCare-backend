@@ -1,5 +1,6 @@
 const Service = require('../models/Service');
-const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinaryHelper');
+const { uploadToAntryk, deleteFromAntryk } = require('../utils/cloudinaryHelper');
+const { v4: uuidv4 } = require('uuid');
 
 // Get all services
 exports.getAllServices = async (req, res) => {
@@ -28,20 +29,22 @@ exports.createService = async (req, res) => {
     const { title, shortDescription, detailedDescription } = req.body;
 
     let image1Url = '';
-    let image1PublicId = '';
+    let image1Key = '';
     let image2Url = '';
-    let image2PublicId = '';
+    let image2Key = '';
 
-    // Handle two image uploads
+    // Handle two image uploads with UUID-based keys
     if (req.files && req.files.image1 && req.files.image1[0]) {
-      const uploadResult1 = await uploadToCloudinary(req.files.image1[0], 'divinecare/services');
-      image1Url = uploadResult1.secure_url;
-      image1PublicId = uploadResult1.public_id;
+      const key1 = `services/${uuidv4()}_${req.files.image1[0].originalname}`;
+      const uploadResult1 = await uploadToAntryk(req.files.image1[0], key1);
+      image1Url = uploadResult1.url;
+      image1Key = uploadResult1.key;
     }
     if (req.files && req.files.image2 && req.files.image2[0]) {
-      const uploadResult2 = await uploadToCloudinary(req.files.image2[0], 'divinecare/services');
-      image2Url = uploadResult2.secure_url;
-      image2PublicId = uploadResult2.public_id;
+      const key2 = `services/${uuidv4()}_${req.files.image2[0].originalname}`;
+      const uploadResult2 = await uploadToAntryk(req.files.image2[0], key2);
+      image2Url = uploadResult2.url;
+      image2Key = uploadResult2.key;
     }
 
     const service = new Service({
@@ -49,13 +52,14 @@ exports.createService = async (req, res) => {
       shortDescription,
       detailedDescription,
       image1: image1Url,
-      image1PublicId,
+      image1Key,
       image2: image2Url,
-      image2PublicId
+      image2Key
     });
     await service.save();
     res.status(201).json(service);
   } catch (error) {
+    console.error('Service creation error:', error); // Add this line
     res.status(500).json({ message: 'Error creating service', error });
   }
 };
@@ -69,23 +73,25 @@ exports.updateService = async (req, res) => {
 
     let updateData = { title, shortDescription, detailedDescription };
 
-    // Handle image1 update
+    // Handle image1 update with UUID-based key
     if (req.files && req.files.image1 && req.files.image1[0]) {
-      if (service.image1PublicId) {
-        await deleteFromCloudinary(service.image1PublicId);
+      if (service.image1Key) {
+        await deleteFromAntryk(service.image1Key);
       }
-      const uploadResult1 = await uploadToCloudinary(req.files.image1[0], 'divinecare/services');
-      updateData.image1 = uploadResult1.secure_url;
-      updateData.image1PublicId = uploadResult1.public_id;
+      const key1 = `services/${uuidv4()}_${req.files.image1[0].originalname}`;
+      const uploadResult1 = await uploadToAntryk(req.files.image1[0], key1);
+      updateData.image1 = uploadResult1.url;
+      updateData.image1Key = uploadResult1.key;
     }
-    // Handle image2 update
+    // Handle image2 update with UUID-based key
     if (req.files && req.files.image2 && req.files.image2[0]) {
-      if (service.image2PublicId) {
-        await deleteFromCloudinary(service.image2PublicId);
+      if (service.image2Key) {
+        await deleteFromAntryk(service.image2Key);
       }
-      const uploadResult2 = await uploadToCloudinary(req.files.image2[0], 'divinecare/services');
-      updateData.image2 = uploadResult2.secure_url;
-      updateData.image2PublicId = uploadResult2.public_id;
+      const key2 = `services/${uuidv4()}_${req.files.image2[0].originalname}`;
+      const uploadResult2 = await uploadToAntryk(req.files.image2[0], key2);
+      updateData.image2 = uploadResult2.url;
+      updateData.image2Key = uploadResult2.key;
     }
 
     const updatedService = await Service.findByIdAndUpdate(req.params.id, updateData, { new: true });

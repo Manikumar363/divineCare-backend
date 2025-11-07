@@ -1,6 +1,6 @@
 const multer = require('multer');
 
-// memory storage for direct upload to Cloudinary
+// memory storage for direct upload to Antryk
 const storage = multer.memoryStorage();
 
 const uploadResume = multer({

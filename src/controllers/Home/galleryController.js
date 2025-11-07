@@ -13,9 +13,17 @@ exports.getGallery = async (req, res) => {
 // PUT update gallery data
 exports.updateGallery = async (req, res) => {
   try {
+    let updateData = { ...req.body };
+    if (req.file) {
+      const { v4: uuidv4 } = require('uuid');
+      const { uploadToAntryk } = require('../../utils/cloudinaryHelper');
+      const key = `gallery/${uuidv4()}_${req.file.originalname}`;
+      const uploadResult = await uploadToAntryk(req.file, key);
+      updateData.imageKey = uploadResult.key;
+    }
     const gallery = await Gallery.findByIdAndUpdate(
       req.params.id,
-      { ...req.body },
+      updateData,
       { new: true }
     );
     if (!gallery) return res.status(404).json({ success: false, message: 'Gallery not found' });

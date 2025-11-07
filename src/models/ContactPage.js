@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const contactPageSchema = new mongoose.Schema({
+  image: {
+    type: String // Antryk file URL
+  },
+  imageKey: {
+    type: String // Antryk object key
+  },
   pageHeading: {
     type: String,
     required: true,

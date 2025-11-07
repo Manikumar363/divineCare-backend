@@ -18,7 +18,14 @@ exports.updateContactPage = async (req, res) => {
     // Assuming only one document exists
     const content = await ContactPage.findOne();
     if (!content) return res.status(404).json({ message: 'Contact page content not found' });
-    const updateFields = req.body;
+    let updateFields = req.body;
+    if (req.file) {
+      const { v4: uuidv4 } = require('uuid');
+      const { uploadToAntryk } = require('../utils/cloudinaryHelper');
+      const key = `contact-page/${uuidv4()}_${req.file.originalname}`;
+      const uploadResult = await uploadToAntryk(req.file, key);
+      updateFields.imageKey = uploadResult.key;
+    }
     Object.assign(content, updateFields);
     await content.save();
     res.status(200).json(content);

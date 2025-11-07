@@ -8,8 +8,8 @@ const eventSchema = new mongoose.Schema({
   endDate: { type: Date },
   location: { type: String },
   venueDetails: { type: String },
-  image: { type: String }, // Cloudinary secure_url
-  imagePublicId: { type: String }, // Cloudinary public_id for deletion
+  image: { type: String }, // Antryk file URL
+  imageKey: { type: String }, // Antryk object key for deletion
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   registrations: [
     {

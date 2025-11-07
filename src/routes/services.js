@@ -12,10 +12,16 @@ router.get('/', serviceController.getAllServices);
 router.get('/:id', serviceController.getServiceById);
 
 // POST create a new service
-router.post('/', protect, adminOnly, upload.single('image'), serviceController.createService);
+router.post('/', protect, adminOnly, upload.fields([
+	{ name: 'image1', maxCount: 1 },
+	{ name: 'image2', maxCount: 1 }
+]), serviceController.createService);
 
 // PUT update a service
-router.put('/:id', protect, adminOnly, upload.single('image'), serviceController.updateService);
+router.put('/:id', protect, adminOnly, upload.fields([
+	{ name: 'image1', maxCount: 1 },
+	{ name: 'image2', maxCount: 1 }
+]), serviceController.updateService);
 
 // DELETE a service
 router.delete('/:id', protect, adminOnly, serviceController.deleteService);

@@ -1,5 +1,5 @@
 const AboutTestimonials = require('../../models/About/aboutTestimonials');
-const { uploadToCloudinary, deleteFromCloudinary } = require('../../utils/cloudinaryHelper');
+const { uploadToAntryk, deleteFromAntryk } = require('../../utils/cloudinaryHelper');
 
 // GET section content and all testimonials
 exports.getAboutTestimonials = async (req, res) => {
@@ -21,11 +21,11 @@ exports.updateAboutTestimonials = async (req, res) => {
     
     // Handle section image update if provided
     if (sectionImage || req.file) {
+      const { v4: uuidv4 } = require('uuid');
       const imageData = req.file || sectionImage;
-      const oldPublicId = about.sectionImagePublicId;
-      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/about-testimonials', oldPublicId);
-      about.sectionImage = uploadResult.secure_url;
-      about.sectionImagePublicId = uploadResult.public_id;
+      const key = `about-testimonials/${uuidv4()}_${imageData.originalname || 'image'}`;
+      const uploadResult = await uploadToAntryk(imageData, key);
+      about.sectionImageKey = uploadResult.key;
     }
     
     // Update other fields
@@ -59,22 +59,20 @@ exports.addTestimonial = async (req, res) => {
     const about = await AboutTestimonials.findOne();
     if (!about) return res.status(404).json({ success: false, message: 'About Testimonials section not found' });
     
-    // Handle image upload to Cloudinary
-    let imageUrl = '';
-    let imagePublicId = '';
-    
+    // Handle image upload to Antryk
+    let imageKey = '';
     if (image || req.file) {
+      const { v4: uuidv4 } = require('uuid');
       const imageData = req.file || image;
-      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/testimonials');
-      imageUrl = uploadResult.secure_url;
-      imagePublicId = uploadResult.public_id;
+      const key = `testimonials/${uuidv4()}_${imageData.originalname || 'image'}`;
+      const uploadResult = await uploadToAntryk(imageData, key);
+      imageKey = uploadResult.key;
     }
-    
+
     const mongoose = require('mongoose');
     about.testimonials.push({ 
       _id: new mongoose.Types.ObjectId(), // Ensure proper ObjectId
-      image: imageUrl, 
-      imagePublicId, 
+      imageKey, 
       rating, 
       name, 
       title, 
@@ -99,11 +97,20 @@ exports.updateTestimonial = async (req, res) => {
     
     // Handle image update if provided
     if (image || req.file) {
+      const { v4: uuidv4 } = require('uuid');
       const imageData = req.file || image;
-      const oldPublicId = testimonial.imagePublicId;
-      const uploadResult = await uploadToCloudinary(imageData, 'divinecare/testimonials', oldPublicId);
-      testimonial.image = uploadResult.secure_url;
-      testimonial.imagePublicId = uploadResult.public_id;
+      // Delete old image from Antryk if present
+      if (testimonial.imageKey) {
+        const { deleteFromAntryk } = require('../../utils/cloudinaryHelper');
+        try {
+          await deleteFromAntryk(testimonial.imageKey);
+        } catch (err) {
+          console.error('Failed to delete old image from Antryk:', err.message);
+        }
+      }
+      const key = `testimonials/${uuidv4()}_${imageData.originalname || 'image'}`;
+      const uploadResult = await uploadToAntryk(imageData, key);
+      testimonial.imageKey = uploadResult.key;
     }
     
     // Update other fields
@@ -127,12 +134,17 @@ exports.deleteTestimonial = async (req, res) => {
     const index = about.testimonials.findIndex(t => t._id.toString() === req.params.testimonialId);
     if (index === -1) return res.status(404).json({ success: false, message: 'Testimonial not found' });
     
-    // Delete image from Cloudinary before removing testimonial
+    // Delete image from Antryk before removing testimonial
     const testimonial = about.testimonials[index];
-    if (testimonial.imagePublicId) {
-      await deleteFromCloudinary(testimonial.imagePublicId);
+    if (testimonial.imageKey) {
+      const { deleteFromAntryk } = require('../../utils/cloudinaryHelper');
+      try {
+        await deleteFromAntryk(testimonial.imageKey);
+      } catch (err) {
+        console.error('Failed to delete image from Antryk:', err.message);
+      }
     }
-    
+
     about.testimonials.splice(index, 1);
     await about.save();
     res.status(200).json({ success: true, about });

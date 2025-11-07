@@ -19,18 +19,21 @@
   "author": "DivineCare Team",
   "license": "MIT",
   "dependencies": {
+    "axios": "^1.13.2",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.7.0",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
-    "dotenv": "^16.3.1",
+    "dotenv": "^16.6.1",
     "express": "^4.18.2",
+    "form-data": "^4.0.4",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.0",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
-    "nodemailer": "^7.0.6"
+    "nodemailer": "^7.0.6",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

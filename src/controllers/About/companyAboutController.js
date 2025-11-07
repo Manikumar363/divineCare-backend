@@ -14,9 +14,17 @@ exports.getCompanyAbout = async (req, res)=>{
 // PUT update company about section data
 exports.updateCompanyAbout = async (req,res)=>{
     try{
+        let updateData = { ...req.body };
+        if (req.file) {
+            const { v4: uuidv4 } = require('uuid');
+            const { uploadToAntryk } = require('../../utils/cloudinaryHelper');
+            const key = `company-about/${uuidv4()}_${req.file.originalname}`;
+            const uploadResult = await uploadToAntryk(req.file, key);
+            updateData.imageKey = uploadResult.key;
+        }
         const company = await CompanyAbout.findByIdAndUpdate(
             req.params.id,
-            {...req.body},
+            updateData,
             {new: true}
         );
         if(!company) return res.status(404).json({success: false, message: 'Company About section not found'});

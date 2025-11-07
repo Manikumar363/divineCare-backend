@@ -7,7 +7,8 @@ const {protect, adminOnly} = require('../../middleware/auth');
 router.get('/', getCompanyAbout);
 
 // PUT update company about section data
-router.put('/:id', protect, adminOnly, updateCompanyAbout);
+const upload = require('../../middleware/multer');
+router.put('/:id', protect, adminOnly, upload.single('image'), updateCompanyAbout);
 
 
 module.exports = router;

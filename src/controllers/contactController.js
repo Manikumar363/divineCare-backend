@@ -15,7 +15,18 @@ const submitContactForm = async (req, res) => {
             });
         }
 
-        // Create contact entry
+
+        // Handle image upload to Antryk
+        let imageKey = '';
+        if (req.file) {
+            const { v4: uuidv4 } = require('uuid');
+            const { uploadToAntryk } = require('../utils/cloudinaryHelper');
+            const key = `contact/${uuidv4()}_${req.file.originalname}`;
+            const uploadResult = await uploadToAntryk(req.file, key);
+            imageKey = uploadResult.key;
+        }
+
+        // Create contact entry (store only key, not full URL)
         const contact = await Contact.create({
             firstName,
             lastName,
@@ -23,7 +34,8 @@ const submitContactForm = async (req, res) => {
             phone,
             subject,
             message,
-            willingToDonate: willingToDonate || false
+            willingToDonate: willingToDonate || false,
+            imageKey: imageKey
         });
 
         res.status(201).json({
@@ -35,7 +47,8 @@ const submitContactForm = async (req, res) => {
                 lastName: contact.lastName,
                 email: contact.email,
                 subject: contact.subject,
-                createdAt: contact.createdAt
+                createdAt: contact.createdAt,
+                imageKey: contact.imageKey
             }
         });
 
@@ -188,6 +201,17 @@ const deleteContact = async (req, res) => {
                 success: false,
                 message: 'Contact not found'
             });
+        }
+
+
+        // Delete image from Antryk if present
+        if (contact.imageKey) {
+            const { deleteFromAntryk } = require('../utils/cloudinaryHelper');
+            try {
+                await deleteFromAntryk(contact.imageKey);
+            } catch (err) {
+                console.error('Failed to delete file from Antryk:', err.message);
+            }
         }
 
         await contact.deleteOne();

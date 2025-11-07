@@ -8,7 +8,8 @@ const tabSchema = new mongoose.Schema({
 const visionAboutSchema = new mongoose.Schema({
   heading: { type: String, required: true },
   description: { type: String, required: true },
-  image: { type: String, required: true }, // Mission & Vision Image
+  image: { type: String, required: true }, // Mission & Vision Image (Antryk URL)
+  imageKey: { type: String }, // Antryk object key for deletion
   tabs: [tabSchema] // Array of 3 tabs
 }, { timestamps: true });
 

@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const teamMemberSchema = new mongoose.Schema({
-  image: { type: String, required: true }, // Cloudinary secure_url
-  imagePublicId: { type: String }, // Cloudinary public_id for deletion
+  image: { type: String, required: true }, // Antryk URL
+  imageKey: { type: String }, // Antryk object key for deletion
   fullName: { type: String, required: true },
   designation: { type: String, required: true }
 }, { _id: true });

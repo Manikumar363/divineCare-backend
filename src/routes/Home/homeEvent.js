@@ -6,7 +6,8 @@ const { protect, adminOnly } = require('../../middleware/auth');
 // GET home event section data
 router.get('/', getHomeEvent);
 
+const upload = require('../../middleware/multer');
 // PUT update home event section data
-router.put('/:id', protect, adminOnly, updateHomeEvent);
+router.put('/:id', protect, adminOnly, upload.single('image'), updateHomeEvent);
 
 module.exports = router;

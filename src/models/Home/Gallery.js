@@ -12,8 +12,8 @@ const GallerySchema = new mongoose.Schema({
     trim: true
   },
   images: [{
-    url: { type: String, required: true },
-    public_id: { type: String }
+    url: { type: String, required: true }, // Antryk URL
+    key: { type: String } // Antryk object key
   }]
 }, { timestamps: true });
 

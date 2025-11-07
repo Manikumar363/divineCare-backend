@@ -21,10 +21,10 @@ const testimonialSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    required: true // Cloudinary secure_url
+    required: true // Antryk file URL
   },
-  imagePublicId: {
-    type: String // Cloudinary public_id for deletion
+  imageKey: {
+    type: String // Antryk object key
   }
 });
 

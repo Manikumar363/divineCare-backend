@@ -1,5 +1,5 @@
 const Job = require('../../models/career/Job');
-const { uploadToCloudinary, deleteFromCloudinary } = require('../../utils/cloudinaryHelper');
+const { uploadToAntryk, deleteFromAntryk } = require('../../utils/cloudinaryHelper');
 const mongoose = require('mongoose');
 
 // GET all jobs
@@ -63,15 +63,15 @@ exports.deleteJob = async (req, res) => {
     const job = await Job.findById(req.params.id);
     if (!job) return res.status(404).json({ success: false, message: 'Job not found' });
 
-    // delete applicant resumes from cloudinary if present
+    // delete applicant resumes from Antryk if present
     if (Array.isArray(job.applicants)) {
       for (const applicant of job.applicants) {
-        if (applicant && applicant.resumePublicId) {
+        if (applicant && applicant.resumeKey) {
           try {
-            await deleteFromCloudinary(applicant.resumePublicId);
+            await deleteFromAntryk(applicant.resumeKey);
           } catch (err) {
             // log and continue
-            console.error('Failed to delete applicant resume from Cloudinary:', err.message);
+            console.error('Failed to delete applicant resume from Antryk:', err.message);
           }
         }
       }
@@ -94,13 +94,15 @@ exports.applyToJob = async (req, res) => {
     const { name, email, contactNumber, address, coverLetter, resume } = req.body;
 
     // handle resume upload: prefer req.file (multerResume) else resume (base64 or url)
-    let resumeUrl = '';
-    let resumePublicId = '';
-    if (req.file || resume) {
-      const resumeData = req.file || resume;
-      const uploadResult = await uploadToCloudinary(resumeData, 'divinecare/job-applications');
-      resumeUrl = uploadResult.secure_url;
-      resumePublicId = uploadResult.public_id;
+    let resumeKey = '';
+    if (req.file) {
+      const { v4: uuidv4 } = require('uuid');
+      const key = `job-applications/${uuidv4()}_${req.file.originalname}`;
+      const uploadResult = await uploadToAntryk(req.file, key);
+      resumeKey = uploadResult.key;
+    } else if (resume) {
+      // If resume is a URL or base64, you may want to handle accordingly
+      resumeKey = resume;
     }
 
     const applicant = {
@@ -109,8 +111,7 @@ exports.applyToJob = async (req, res) => {
       email,
       contactNumber,
       address,
-      resume: resumeUrl,
-      resumePublicId,
+      resumeKey,
       coverLetter
     };
 

@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 const homeSchema = new mongoose.Schema({
-  heroImage: { type: String }, // Cloudinary URL
+  heroImage: { type: String }, // Antryk URL
+  heroImageKey: { type: String }, // Antryk object key
   heroTitle: { type: String, required: true },
   heroHeading: { type: String, required: true },
   description: { type: String, required: true },

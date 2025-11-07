@@ -16,18 +16,18 @@ const serviceSchema = new mongoose.Schema({
     required: true
   },
   image1: {
-    type: String, // Cloudinary secure_url
+    type: String, // Antryk file URL
     required: false
   },
-  image1PublicId: {
-    type: String // Cloudinary public_id for deletion
+  image1Key: {
+    type: String // Antryk object key
   },
   image2: {
-    type: String, // Cloudinary secure_url
+    type: String, // Antryk file URL
     required: false
   },
-  image2PublicId: {
-    type: String // Cloudinary public_id for deletion
+  image2Key: {
+    type: String // Antryk object key
   }
 }, { timestamps: true });
 
