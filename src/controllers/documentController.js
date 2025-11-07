@@ -1,5 +1,37 @@
+
 const Document = require('../models/Document');
 const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinaryHelper');
+
+// Upload a single document (admin)
+exports.uploadSingleDocument = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'File is required' });
+    }
+    const title = req.body.title || req.file.originalname.replace(/\.[^/.]+$/, "");
+    const category = req.body.category || title;
+    const description = req.body.description || '';
+
+    // Upload to Cloudinary
+    const uploadResult = await uploadToCloudinary(req.file, 'divinecare/documents');
+
+    // Create document entry
+    const doc = await Document.create({
+      title,
+      category,
+      description,
+      fileUrl: uploadResult.secure_url,
+      filePublicId: uploadResult.public_id,
+      mimeType: req.file.mimetype,
+      size: req.file.size,
+      uploadedBy: req.user ? req.user._id : undefined
+    });
+
+    res.status(201).json({ success: true, document: doc });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 
 // Create multiple documents (admin) - supports multiple file uploads
 exports.createDocuments = async (req, res) => {
