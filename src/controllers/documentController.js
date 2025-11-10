@@ -35,7 +35,26 @@ exports.uploadSingleDocument = async (req, res) => {
 // Create multiple documents (admin) - supports multiple file uploads
 exports.createDocuments = async (req, res) => {
   try {
+    // Support two modes:
+    // 1) multipart file uploads (req.files present) -> create Documents from uploaded files
+    // 2) metadata-only JSON create (no files) -> create a single Document from provided metadata
     if (!req.files || !req.files.length) {
+      // If frontend sent metadata for a single document (fileUrl / fileKey etc), create it
+      const { title, category, description, fileUrl, fileKey, filePublicId, mimeType, size } = req.body;
+      if (fileUrl || fileKey || filePublicId) {
+        const docTitle = title || (fileUrl ? fileUrl.split('/').pop() : 'Document');
+        const doc = await Document.create({
+          title: docTitle,
+          category: category || docTitle,
+          description: description || '',
+          fileUrl: fileUrl || undefined,
+          fileKey: fileKey || filePublicId || undefined,
+          mimeType: mimeType || undefined,
+          size: size || undefined,
+          uploadedBy: req.user ? req.user._id : undefined
+        });
+        return res.status(201).json({ success: true, documents: [doc] });
+      }
       return res.status(400).json({ success: false, message: 'Files are required' });
     }
 
