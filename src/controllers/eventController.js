@@ -33,18 +33,28 @@ exports.createEvent = async (req, res) => {
       endDate,
       location,
       venueDetails,
-      image
+      image,
+      imageKey
     } = req.body;
     
-    // Handle image upload to Antryk
-    let imageKey = '';
-    if (image || req.file) {
+    // Determine final image URL and key. Frontend may send image (URL) and imageKey after uploading via upload API.
+    let finalImageUrl = '';
+    let finalImageKey = '';
+
+    if (req.file) {
+      // File uploaded directly - upload to Antryk
       const { v4: uuidv4 } = require('uuid');
-      const imageData = req.file || image;
+      const imageData = req.file;
       const key = `events/${uuidv4()}_${imageData.originalname || 'image'}`;
       const uploadResult = await uploadToAntryk(imageData, key);
-      imageKey = uploadResult.key;
+      finalImageUrl = uploadResult.url || uploadResult.fileUrl || '';
+      finalImageKey = uploadResult.key || uploadResult.objectKey || '';
+    } else {
+      // Frontend already uploaded and provided URL/key
+      if (image) finalImageUrl = image;
+      if (imageKey) finalImageKey = imageKey;
     }
+
     const event = await Event.create({
       title,
       shortDescription,
@@ -53,7 +63,8 @@ exports.createEvent = async (req, res) => {
       endDate,
       location,
       venueDetails,
-      imageKey,
+      image: finalImageUrl,
+      imageKey: finalImageKey,
       createdBy: req.user._id
     });
     res.status(201).json({ success: true, event });
@@ -67,29 +78,44 @@ exports.updateEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
-    
-    const { image, ...otherFields } = req.body;
+    // Accept possible image URL/key from frontend, or a file in req.file
+    const { image, imageKey, ...otherFields } = req.body;
     let updateData = { ...otherFields };
-    
-    // Handle image update if provided
-    if (image || req.file) {
+
+    if (req.file) {
+      // File uploaded - upload to Antryk and replace
       const { v4: uuidv4 } = require('uuid');
-      const imageData = req.file || image;
+      const imageData = req.file;
+
       // Delete old image from Antryk if present
       if (event.imageKey) {
-        const { deleteFromAntryk } = require('../utils/cloudinaryHelper');
         try {
           await deleteFromAntryk(event.imageKey);
         } catch (err) {
           console.error('Failed to delete old image from Antryk:', err.message);
         }
       }
+
       const key = `events/${uuidv4()}_${imageData.originalname || 'image'}`;
-      const { uploadToAntryk } = require('../utils/cloudinaryHelper');
       const uploadResult = await uploadToAntryk(imageData, key);
-      updateData.imageKey = uploadResult.key;
+      updateData.image = uploadResult.url || uploadResult.fileUrl || '';
+      updateData.imageKey = uploadResult.key || uploadResult.objectKey || '';
+    } else {
+      // No file uploaded - accept provided image and imageKey
+      if (image !== undefined) updateData.image = image;
+      if (imageKey !== undefined) {
+        // If replacing key, delete old object
+        if (event.imageKey && event.imageKey !== imageKey) {
+          try {
+            await deleteFromAntryk(event.imageKey);
+          } catch (err) {
+            console.error('Failed to delete old image from Antryk:', err.message);
+          }
+        }
+        updateData.imageKey = imageKey;
+      }
     }
-    
+
     const updatedEvent = await Event.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.status(200).json({ success: true, event: updatedEvent });
   } catch (error) {
