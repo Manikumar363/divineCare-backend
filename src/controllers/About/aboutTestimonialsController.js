@@ -20,12 +20,19 @@ exports.updateAboutTestimonials = async (req, res) => {
     const { sectionHeading, sectionDescription, sectionImage, statistics, testimonials } = req.body;
     
     // Handle section image update if provided
-    if (sectionImage || req.file) {
+    if (req.file) {
+      // Actual file uploaded via multipart form - upload to Antryk
       const { v4: uuidv4 } = require('uuid');
-      const imageData = req.file || sectionImage;
+      const imageData = req.file;
       const key = `about-testimonials/${uuidv4()}_${imageData.originalname || 'image'}`;
       const uploadResult = await uploadToAntryk(imageData, key);
-      about.sectionImageKey = uploadResult.key;
+      // uploadToAntryk should return both url and key — adapt to its shape
+      about.sectionImage = uploadResult.url || uploadResult.fileUrl || '';
+      about.sectionImageKey = uploadResult.key || uploadResult.objectKey || '';
+    } else if (sectionImage !== undefined) {
+      // Frontend provided a URL (or key-resolved URL) and optionally a sectionImageKey
+      about.sectionImage = sectionImage;
+      if (req.body.sectionImageKey !== undefined) about.sectionImageKey = req.body.sectionImageKey;
     }
     
     // Update other fields
@@ -34,12 +41,15 @@ exports.updateAboutTestimonials = async (req, res) => {
     if (statistics !== undefined) about.statistics = statistics;
     if (testimonials !== undefined) {
       // Ensure each testimonial has a proper _id when updating the array
+      const mongoose = require('mongoose');
       const processedTestimonials = testimonials.map(testimonial => {
         if (!testimonial._id) {
           // Generate new ObjectId if _id is missing
-          const mongoose = require('mongoose');
           testimonial._id = new mongoose.Types.ObjectId();
         }
+        // Keep image and imageKey fields as provided by frontend. Don't re-upload here.
+        // If frontend provided only imageKey and not image URL, frontend should provide image URL
+        // or backend can construct it using your Antryk base URL elsewhere.
         return testimonial;
       });
       about.testimonials = processedTestimonials;
@@ -55,24 +65,34 @@ exports.updateAboutTestimonials = async (req, res) => {
 // POST add a new testimonial
 exports.addTestimonial = async (req, res) => {
   try {
-    const { image, rating, name, title, content } = req.body;
+    // Accept either a previously-uploaded URL/key from frontend or an actual file via multipart
+    const { image, imageKey, rating, name, title, content } = req.body;
     const about = await AboutTestimonials.findOne();
     if (!about) return res.status(404).json({ success: false, message: 'About Testimonials section not found' });
     
-    // Handle image upload to Antryk
-    let imageKey = '';
-    if (image || req.file) {
+    // Determine final image URL and key
+    let finalImageUrl = '';
+    let finalImageKey = '';
+
+    if (req.file) {
+      // File uploaded directly - upload to Antryk
       const { v4: uuidv4 } = require('uuid');
-      const imageData = req.file || image;
+      const imageData = req.file;
       const key = `testimonials/${uuidv4()}_${imageData.originalname || 'image'}`;
       const uploadResult = await uploadToAntryk(imageData, key);
-      imageKey = uploadResult.key;
+      finalImageUrl = uploadResult.url || uploadResult.fileUrl || '';
+      finalImageKey = uploadResult.key || uploadResult.objectKey || '';
+    } else {
+      // Frontend already uploaded and sent url/key
+      if (image) finalImageUrl = image;
+      if (imageKey) finalImageKey = imageKey;
     }
 
     const mongoose = require('mongoose');
     about.testimonials.push({ 
       _id: new mongoose.Types.ObjectId(), // Ensure proper ObjectId
-      imageKey, 
+      image: finalImageUrl,
+      imageKey: finalImageKey,
       rating, 
       name, 
       title, 
@@ -93,24 +113,42 @@ exports.updateTestimonial = async (req, res) => {
     const testimonial = about.testimonials.id(req.params.testimonialId);
     if (!testimonial) return res.status(404).json({ success: false, message: 'Testimonial not found' });
     
-    const { image, rating, name, title, content } = req.body;
-    
-    // Handle image update if provided
-    if (image || req.file) {
+    // Accept either a previously-uploaded URL/key from frontend or an actual file via multipart
+    const { image, imageKey, rating, name, title, content } = req.body;
+
+    // Handle image update
+    if (req.file) {
+      // File uploaded - upload to Antryk and replace
       const { v4: uuidv4 } = require('uuid');
-      const imageData = req.file || image;
+      const imageData = req.file;
+
       // Delete old image from Antryk if present
       if (testimonial.imageKey) {
-        const { deleteFromAntryk } = require('../../utils/cloudinaryHelper');
         try {
           await deleteFromAntryk(testimonial.imageKey);
         } catch (err) {
           console.error('Failed to delete old image from Antryk:', err.message);
         }
       }
+
       const key = `testimonials/${uuidv4()}_${imageData.originalname || 'image'}`;
       const uploadResult = await uploadToAntryk(imageData, key);
-      testimonial.imageKey = uploadResult.key;
+      testimonial.image = uploadResult.url || uploadResult.fileUrl || '';
+      testimonial.imageKey = uploadResult.key || uploadResult.objectKey || '';
+    } else {
+      // No file - backend should accept image and imageKey provided by frontend (already uploaded)
+      if (image !== undefined) testimonial.image = image;
+      if (imageKey !== undefined) {
+        // If imageKey changed and there was a previous imageKey, delete the old object
+        if (testimonial.imageKey && testimonial.imageKey !== imageKey) {
+          try {
+            await deleteFromAntryk(testimonial.imageKey);
+          } catch (err) {
+            console.error('Failed to delete old image from Antryk:', err.message);
+          }
+        }
+        testimonial.imageKey = imageKey;
+      }
     }
     
     // Update other fields
