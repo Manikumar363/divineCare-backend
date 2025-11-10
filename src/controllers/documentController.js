@@ -156,11 +156,37 @@ exports.updateDocument = async (req, res) => {
       doc.fileKey = uploadResult.key;
       doc.mimeType = req.file.mimetype;
       doc.size = req.file.size;
+      // Also store a public URL if uploadResult contains a key or we can build one
+      try {
+        const base = process.env.ANTRYK_BASE_URL || 'https://divine-care.ap-south-1.storage.onantryk.com';
+        if (uploadResult && (uploadResult.key || uploadResult.key === 0)) {
+          doc.fileUrl = `${base.replace(/\/$/, '')}/${String(uploadResult.key).replace(/^\/+/, '')}`;
+        } else if (uploadResult && uploadResult.url) {
+          doc.fileUrl = uploadResult.url;
+        }
+      } catch (err) {
+        console.error('Error constructing fileUrl from uploadResult:', err);
+      }
     }
 
     if (title !== undefined) doc.title = title;
     if (category !== undefined) doc.category = category;
     if (description !== undefined) doc.description = description;
+
+    // If frontend sent a fileUrl / filePublicId (or fileKey) in the JSON body
+    // (this happens when upload is performed via the upload endpoint and metadata is sent to update)
+    if (req.body.fileUrl !== undefined) {
+      doc.fileUrl = req.body.fileUrl;
+    }
+    if (req.body.filePublicId !== undefined) {
+      // Accept different naming: filePublicId or fileKey
+      doc.fileKey = req.body.filePublicId;
+    }
+    if (req.body.fileKey !== undefined) {
+      doc.fileKey = req.body.fileKey;
+    }
+    if (req.body.mimeType !== undefined) doc.mimeType = req.body.mimeType;
+    if (req.body.size !== undefined) doc.size = req.body.size;
 
     await doc.save();
     res.status(200).json({ success: true, document: doc });

@@ -22,7 +22,9 @@ router.post('/', protect, adminOnly, uploadResume.array('files', 13), createDocu
 // Admin: upload single document
 router.post('/single', protect, adminOnly, uploadResume.single('file'), uploadSingleDocument);
 
-router.put('/:id', protect, adminOnly, uploadResume.single('file'), updateDocument);
+// Allow JSON updates without requiring multipart file upload. File replacement is still supported
+// via the separate /single upload endpoint or by sending multipart to a dedicated endpoint.
+router.put('/:id', protect, adminOnly, updateDocument);
 router.delete('/:id', protect, adminOnly, deleteDocument);
 
 module.exports = router;
