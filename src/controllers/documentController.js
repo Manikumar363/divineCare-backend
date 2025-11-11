@@ -16,10 +16,24 @@ exports.uploadSingleDocument = async (req, res) => {
     const { v4: uuidv4 } = require('uuid');
     const key = `documents/${uuidv4()}_${req.file.originalname}`;
     const uploadResult = await uploadToAntryk(req.file, key);
+
+    // Construct a public fileUrl when possible. uploadToAntryk may return a url or a key.
+    let fileUrl;
+    try {
+      const base = process.env.ANTRYK_BASE_URL || 'https://divine-care.ap-south-1.storage.onantryk.com';
+      if (uploadResult && (uploadResult.url || uploadResult.key || uploadResult.key === 0)) {
+        if (uploadResult.url) fileUrl = uploadResult.url;
+        else fileUrl = `${base.replace(/\/$/, '')}/${String(uploadResult.key).replace(/^\/+/, '')}`;
+      }
+    } catch (err) {
+      console.error('Error constructing fileUrl from upload result:', err.message);
+    }
+
     const doc = await Document.create({
       title,
       category,
       description,
+      fileUrl: fileUrl,
       fileKey: uploadResult.key,
       mimeType: req.file.mimetype,
       size: req.file.size,
@@ -77,11 +91,25 @@ exports.createDocuments = async (req, res) => {
         // Upload to Antryk
         const key = `documents/${uuidv4()}_${file.originalname}`;
         const uploadResult = await uploadToAntryk(file, key);
+
+        // Build a public fileUrl from uploadResult when available
+        let fileUrl;
+        try {
+          const base = process.env.ANTRYK_BASE_URL || 'https://divine-care.ap-south-1.storage.onantryk.com';
+          if (uploadResult && (uploadResult.url || uploadResult.key || uploadResult.key === 0)) {
+            if (uploadResult.url) fileUrl = uploadResult.url;
+            else fileUrl = `${base.replace(/\/$/, '')}/${String(uploadResult.key).replace(/^\/+/, '')}`;
+          }
+        } catch (err) {
+          console.error('Error constructing fileUrl from upload result:', err.message);
+        }
+
         // Create document entry
         const doc = await Document.create({
           title,
           category,
           description: req.body.description,
+          fileUrl: fileUrl,
           fileKey: uploadResult.key,
           mimeType: file.mimetype,
           size: file.size,
