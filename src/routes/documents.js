@@ -8,7 +8,8 @@ const {
   getDocumentById,
   updateDocument,
   deleteDocument,
-  uploadSingleDocument
+  uploadSingleDocument,
+  deleteDocumentByKey
 } = require('../controllers/documentController');
 
 // Protected routes: both admin and users can view documents
@@ -21,6 +22,9 @@ router.post('/', protect, adminOnly, uploadResume.array('files', 13), createDocu
 
 // Admin: upload single document
 router.post('/single', protect, adminOnly, uploadResume.single('file'), uploadSingleDocument);
+
+// Admin: delete document(s) by id, fileKey or fileUrl
+router.post('/delete-by-key', protect, adminOnly, deleteDocumentByKey);
 
 // Allow both JSON updates and multipart file replacement on the same route.
 // Multer will only process the request when Content-Type is multipart/form-data, otherwise

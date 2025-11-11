@@ -235,3 +235,54 @@ exports.deleteDocument = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Delete document(s) by id, fileKey or fileUrl (admin)
+exports.deleteDocumentByKey = async (req, res) => {
+  try {
+    const { id, fileKey, fileUrl } = req.body || {};
+
+    if (!id && !fileKey && !fileUrl) {
+      return res.status(400).json({ success: false, message: 'Provide id or fileKey or fileUrl to delete' });
+    }
+
+    let docs = [];
+    if (id) {
+      const doc = await Document.findById(id);
+      if (!doc) return res.status(404).json({ success: false, message: 'Document not found' });
+      docs = [doc];
+    } else {
+      const query = {};
+      if (fileKey) query.fileKey = fileKey;
+      if (fileUrl) query.fileUrl = fileUrl;
+      docs = await Document.find(query);
+      if (!docs || docs.length === 0) return res.status(404).json({ success: false, message: 'No documents matched the provided criteria' });
+    }
+
+    const deleted = [];
+    const failed = [];
+
+    for (const doc of docs) {
+      try {
+        if (doc.fileKey) {
+          try {
+            await deleteFromAntryk(doc.fileKey);
+          } catch (err) {
+            // log and continue to attempt DB deletion
+            console.error('Failed to delete file from Antryk for key', doc.fileKey, err.message);
+          }
+        }
+
+        await Document.findByIdAndDelete(doc._id);
+        deleted.push(String(doc._id));
+      } catch (err) {
+        failed.push({ id: doc._id, error: err.message });
+      }
+    }
+
+    const response = { success: true, deleted };
+    if (failed.length) response.failed = failed;
+    return res.status(200).json(response);
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
