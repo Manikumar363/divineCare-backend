@@ -1,3 +1,7 @@
+const User = require('../models/User');
+const { sendWelcomeEmail } = require('../utils/emailService');
+const crypto = require('crypto');
+
 /**
  * Fetch all users with role 'user' (team members)
  * @route GET /api/users/team
@@ -11,9 +15,6 @@ exports.getTeamUsers = async (req, res) => {
         res.status(500).json({ success: false, message: 'Error fetching team users', error: error.message });
     }
 };
-const User = require('../models/User');
-const { sendWelcomeEmail } = require('../utils/emailService');
-const crypto = require('crypto');
 
 /**
  * Creates a new user and sends welcome email with credentials
@@ -102,5 +103,31 @@ exports.createUser = async (req, res) => {
             message: 'Error creating user',
             error: error.message
         });
+    }
+};
+
+/**
+ * Delete a user by id (admin)
+ * @route DELETE /api/users/:id
+ * @access Admin only
+ */
+exports.deleteUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        if (!userId) return res.status(400).json({ success: false, message: 'User id is required' });
+
+        // Prevent admin from deleting themselves accidentally
+        if (req.user && req.user._id && req.user._id.toString() === userId) {
+            return res.status(400).json({ success: false, message: 'You cannot delete your own account' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+        await User.findByIdAndDelete(userId);
+        res.status(200).json({ success: true, message: 'User deleted' });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({ success: false, message: 'Error deleting user', error: error.message });
     }
 };
