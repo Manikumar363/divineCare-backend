@@ -67,3 +67,44 @@ exports.uploadFile = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Public endpoint: upload a single file (used by users). Does not require auth.
+exports.uploadPublicFile = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    const file = req.file;
+    const folder = req.body.folder || 'uploads';
+
+    // Generate a key
+    const key = `${folder}/${uuidv4()}_${file.originalname}`;
+
+    // Prepare form-data for Antryk
+    const formData = new FormData();
+    formData.append('bucket', ANTRYK_BUCKET_NAME);
+    formData.append('key', key);
+    formData.append('accessKey', ANTRYK_ACCESS_KEY);
+    formData.append('secretKey', ANTRYK_SECRET_KEY);
+    formData.append('file', file.buffer, file.originalname);
+
+    const response = await axios.post('https://storage.apis.antryk.com/api/v1/objects', formData, {
+      headers: formData.getHeaders()
+    });
+
+    if (response.data && response.data.success) {
+      const returnedKey = response.data.key || key;
+      const publicUrl = `${ANTRYK_BASE_URL.replace(/\/$/, '')}/${String(returnedKey).replace(/^\/+/, '')}`;
+      return res.status(200).json({
+        success: true,
+        files: [{ key: returnedKey, url: publicUrl }]
+      });
+    }
+
+    throw new Error('Antryk upload failed: ' + JSON.stringify(response.data));
+  } catch (error) {
+    console.error('Public upload error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
